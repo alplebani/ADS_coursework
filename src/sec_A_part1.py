@@ -162,12 +162,12 @@ def main():
     
 if __name__ == "__main__":
     print("=======================================")
-    print("Initialising section A")
+    print("Initialising section A: exercise 1")
     print("=======================================")
     start_time = time.time()
     main()
     end_time = time.time()
     print("=======================================")
-    print("Section A finished. Exiting!")
+    print("Section A:1 finished. Exiting!")
     print("Time it took to run the code : {} seconds". format(end_time - start_time))
     print("=======================================")

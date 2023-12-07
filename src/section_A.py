@@ -15,6 +15,7 @@ import scikitplot as skplt
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import KFold
 from tabulate import tabulate
+from sklearn.metrics.cluster import contingency_matrix
 
 plt.style.use('mphil.mplstyle')
     
@@ -46,7 +47,7 @@ def show_clusters_size(clusters):
 def show_pca(df_pca, clusters, name):
     
     plt.figure(figsize=(15,10))
-    plt.scatter(df_pca['PC1'], df_pca['PC2'], hue=clusters, palette='Set1')
+    sns.scatterplot(data=df_pca, x='PC1', y='PC2', hue=clusters, palette='Set1')
     plt.title('kMeans: PCA for training set {}'.format(name))
     plt.xlabel('PC1')
     plt.ylabel('PC2')
@@ -64,7 +65,8 @@ def show_single_silhouette(k_model, k, df_model, name):
     plt.xlim(np.min(sing_silhouette_value), np.max(sing_silhouette_value))
     plt.axvline(x=0, c='black')
     plt.savefig('plots/Section_A/silhouette_{0}_{1}.pdf'.format(k, name))
-
+    print("=======================================")
+    print('Saving plot at plots/Section_A/silhouette_{0}_{1}.pdf'.format(k, name))
 
 def main():
     
@@ -143,26 +145,56 @@ def main():
     show_single_silhouette(k_model=clusters_1, k=a, df_model=df_vals, name='set_1')
     show_single_silhouette(k_model=clusters_2, k=b, df_model=df_vals, name='set_2')
     
-    df_vals['Cluster_1'] = clusters_1
-    df_vals['Cluster_2'] = clusters_2
+    new_df_vals = df_vals
     
-    events_1 = np.bincount(df_vals['Cluster_1'])
-    events_2 = np.bincount(df_vals['Cluster_2'])
+    new_df_vals['Cluster_1'] = clusters_1
+    new_df_vals['Cluster_2'] = clusters_2
     
-    # for i in range
+    print('Contingency matrix. kMeans1 vs kMeans 2')
+    print(contingency_matrix(new_df_vals['Cluster_1'], new_df_vals['Cluster_2']))
     
-    # events = np.arange(start=0, stop=408, step=1, dtype=int)
-    # ev_1 = df_vals.iloc[:, -2].to_numpy()
-    # ev_2 = df_vals.iloc[:, -1].to_numpy()
+    print("=======================================")
+    print('Testing different values of k')
+    print("=======================================")
     
-    # table_data = list(zip(events, ev_1, ev_2))
-    
-    # print(tabulate(table_data, headers=['Events', 'kMeans1', 'kMeans2'], tablefmt='grid'))
+    for i in range(2,10):
+        df_vals = df.iloc[:, 1:-1]
+        km_1 = KMeans(random_state=4999, n_clusters=i, n_init=10)
+        km_2 = KMeans(random_state=4999, n_clusters=i, n_init=10)
+        k1 = km_1.fit(test_1)
+        k2 = km_2.fit(test_2)
+        c1 = k1.predict(df_vals)
+        c2 = k2.predict(df_vals)
+        show_single_silhouette(k_model=c1, k=i, df_model=df_vals, name='set_1')
+        show_single_silhouette(k_model=c2, k=i, df_model=df_vals, name='set_2')
         
+        temp_df_vals = df_vals
+        temp_df_vals['C1'] = c1
+        temp_df_vals['C2'] = c2
+        
+        print('Contingency matrix for k = {}. kMeans1 vs kMeans 2'.format(i))
+        print(contingency_matrix(temp_df_vals['C1'], temp_df_vals['C2']))
+      
+        
+    print("=======================================")
+    print('Now working with k=2') 
+    print("=======================================")
     
+    df_vals = df.iloc[:, 1:-1]
     
+    kmeans_2 = KMeans(random_state=4999, n_clusters=2, n_init=10)
+    km2 = kmeans_2.fit_predict(df_vals)
+    show_single_silhouette(k_model=km2, k=2, df_model=df_vals, name='kMeans_before')
+    show_pca(df_pca=df_pca_2, clusters=km2, name='kMeans_before')
     
+    print("=======================================")
+    print('Now doing k-means on the PCA') 
+    print("=======================================")
     
+    kmeans_2 = KMeans(random_state=4999, n_clusters=2, n_init=10)
+    km2 = kmeans_2.fit_predict(df_pca_2)
+    show_single_silhouette(k_model=km2, k=2, df_model=df_pca_2, name='pca_before')
+    show_pca(df_pca=df_pca_2, clusters=km2, name='PCA_before')
     
     if args.plots:
         plt.show()

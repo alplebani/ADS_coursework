@@ -46,6 +46,12 @@ def main():
     print("=======================================")
     print('Saving plot at plots/Section_A/features_density.pdf')
     
+    plt.figure(figsize=(18,11))
+    plt.title('Density for first 20 features')
+    df_20.plot(kind = "density", figsize=(18,11))
+    plt.savefig('plots/Section_A/density.pdf')
+    print("=======================================")
+    print('Saving plot at plots/Section_A/density.pdf')
     df_vals = df.iloc[:, 1:-1] # removing first and last column, using only the features
     
     print("=======================================")

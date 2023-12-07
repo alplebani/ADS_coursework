@@ -10,63 +10,10 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, silhouette_samples
-import scikitplot as skplt
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import KFold
-from tabulate import tabulate
 from sklearn.metrics.cluster import contingency_matrix
+from Helpers.HelperFunctions import features_plot, show_clusters_size, show_pca, show_single_silhouette
 
 plt.style.use('mphil.mplstyle')
-    
-def features_plot(score, coeff, n1, n2, labels):
-    plt.figure(figsize=(15,10))
-    xs = score[:,int(n1)]
-    ys = score[:,int(n2)]
-    n = coeff.shape[0]
-    scalex = 1.0/(xs.max() - xs.min())
-    scaley = 1.0/(ys.max() - ys.min())
-    plt.scatter(xs * scalex,ys * scaley,s=5)
-    for i in range(n):
-        plt.arrow(0, 0, coeff[i,int(n1)], coeff[i,int(n2)],color = 'r',alpha = 0.5)
-        plt.text(coeff[i,int(n1)]* 1.15, coeff[i,int(n2)] * 1.15, labels[i], color = 'r', ha = 'center', va = 'center')
-
-    plt.xlabel("PC{}".format(n1+1))
-    plt.ylabel("PC{}".format(n2+1))
-    plt.title('PC' + str(n1+1) + ' vs PC' + str(n2+1) +', features direction')
-    plt.grid()
-    plt.savefig('plots/Section_A/features_direction.pdf')
-    print("=======================================")
-    print('Saving plot at plots/Section_A/features_direction.pdf')
-    
-def show_clusters_size(clusters):
-    unique, counts = np.unique(clusters, return_counts=True)
-    print(dict(zip(unique, counts)))
-    return len(dict(zip(unique, counts)))
-    
-def show_pca(df_pca, clusters, name):
-    
-    plt.figure(figsize=(15,10))
-    sns.scatterplot(data=df_pca, x='PC1', y='PC2', hue=clusters, palette='Set1')
-    plt.title('kMeans: PCA for training set {}'.format(name))
-    plt.xlabel('PC1')
-    plt.ylabel('PC2')
-    plt.legend()
-    plt.savefig('plots/Section_A/kMeans_{}.pdf'.format(name))
-    print("=======================================")
-    print('Saving plot at plots/Section_A/kMeans_{}.pdf'.format(name))
-
-
-def show_single_silhouette(k_model, k, df_model, name):
-    palette = sns.color_palette('Set1', k)
-    silhouette_avg = silhouette_score( df_model, k_model)
-    sing_silhouette_value = silhouette_samples(df_model, k_model)
-    skplt.metrics.plot_silhouette(df_model, k_model)
-    plt.xlim(np.min(sing_silhouette_value), np.max(sing_silhouette_value))
-    plt.axvline(x=0, c='black')
-    plt.savefig('plots/Section_A/silhouette_{0}_{1}.pdf'.format(k, name))
-    print("=======================================")
-    print('Saving plot at plots/Section_A/silhouette_{0}_{1}.pdf'.format(k, name))
 
 def main():
     
@@ -77,11 +24,14 @@ def main():
     
     np.random.seed(4999)
     
+    print('Reading dataset')
+    print("=======================================")
+    
     df = pd.read_csv("data/A_NoiseAdded.csv")
     
-    df_20 = df.iloc[:, 1:21]
-
-    if args.features:
+    df_20 = df.iloc[:, 1:21] # saving only the first 20 features
+    
+    if args.features: # generating pairplot for 20 features, only if the features flag is turned on
         sns.pairplot(df_20)
         plt.savefig("plots/Section_A/features_pairplot.pdf")
         print("=======================================")
@@ -96,7 +46,10 @@ def main():
     print("=======================================")
     print('Saving plot at plots/Section_A/features_density.pdf')
     
-    df_vals = df.iloc[:, 1:-1]
+    df_vals = df.iloc[:, 1:-1] # removing first and last column, using only the features
+    
+    print("=======================================")
+    print('Applyng PCA')
     
     pca_2 = PCA(n_components=2)
     pca_fit_2 = pca_2.fit_transform(df_vals)
@@ -128,7 +81,10 @@ def main():
     
     features_plot(score=pca_fit_2[:, 0:16], coeff=np.transpose(pca_2.components_[0:16, :]),n1=0, n2=1, labels=list(df_vals.columns))
     
-    test_1, test_2 = train_test_split(df_vals, test_size=0.5, random_state=4999)
+    test_1, test_2 = train_test_split(df_vals, test_size=0.5, random_state=4999) # splittig dataset in two of equal size
+    
+    print("=======================================")
+    print('Starting with k-Means')
     
     km_1 = KMeans(random_state=4999, n_init=10)
     km_2 = KMeans(random_state=4999, n_init=10)
@@ -167,6 +123,8 @@ def main():
         c2 = k2.predict(df_vals)
         show_single_silhouette(k_model=c1, k=i, df_model=df_vals, name='set_1')
         show_single_silhouette(k_model=c2, k=i, df_model=df_vals, name='set_2')
+        name = 'set_1_{}'.format(i)
+        show_pca(df_pca_2, c1, name=name)
         
         temp_df_vals = df_vals
         temp_df_vals['C1'] = c1

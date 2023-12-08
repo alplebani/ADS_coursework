@@ -102,7 +102,7 @@ def main():
     print("=======================================")
     
     df.drop(to_be_removed, inplace=True)
-    print(df.shape)
+    # print(df.shape)
     
     print('Number of duplicates : {}'.format(counter))
     print('Number of wrong labels in duplicates : {}'.format(wrong_labels))
@@ -120,7 +120,7 @@ def main():
     
     x = pd.get_dummies(x)
     
-    print(x)
+    # print(x)
     
     x_train, x_test, y_train, y_test = train_test_split(x, target, test_size=0.33, random_state=4999)
     
@@ -145,13 +145,13 @@ def main():
     
     score = KNN.score(x_test, y_test)
     
-    print(score)
+    print('Score : {}'.format(score))
     
     print(conf_matrix)
     print(classification_report(y_train, y_pred))
     
     df_missing = df[df.index.isin(missing_values)]
-    print(df_missing)
+    # print(df_missing)
     
     x_missing = df_missing.drop('classification', axis=1)
     scaler = StandardScaler()
@@ -160,18 +160,33 @@ def main():
     
     df_out = df_missing.drop('classification', axis=1)
     
-    print(df_out)
+    # print(df_out)
     
     df_out['classification'] = y_missing
+    
+    final_x = df.drop('classification', axis=1)
+    scaler = StandardScaler()
+    final_x = scaler.fit_transform(final_x)
+    final_y = KNN.predict(final_x)
+    
+    final_df = df.drop('classification', axis=1)
+    
+    final_df['classification'] = final_y
+    
+    final_class_counter = final_df['classification'].value_counts().values
     
     missing_counter = df_out['classification'].value_counts().values
     
     print('Prediction of missing labels : {}'.format(missing_counter))
     print('Known labels : {}'.format(label_counter))
     
+    
     final_counter = label_counter + missing_counter
     
     print('Total labels : {}'.format(final_counter))
+    print('Predicted labels: {}'.format(final_class_counter))
+    
+    
     
     if args.plots:
         plt.show()

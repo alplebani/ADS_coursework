@@ -8,14 +8,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import pandas as pd
 from itertools import product
 import seaborn as sns
-from sklearn.decomposition import PCA
-from sklearn.model_selection import train_test_split, RepeatedKFold
-from sklearn.cluster import KMeans
-from sklearn.metrics.cluster import contingency_matrix
-from Helpers.HelperFunctions import features_plot, show_clusters_size, show_pca, show_single_silhouette
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report
 
 plt.style.use('mphil.mplstyle')
 

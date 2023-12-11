@@ -15,6 +15,8 @@ from sklearn.metrics.cluster import contingency_matrix
 from Helpers.HelperFunctions import features_plot, show_clusters_size, show_pca, show_single_silhouette
 from sklearn.mixture import GaussianMixture as GM
 import re
+from sklearn.preprocessing import StandardScaler
+from scipy.spatial.distance import pdist, squareform
 
 plt.style.use('mphil.mplstyle')
 
@@ -31,7 +33,7 @@ def main():
     
     df = pd.read_csv("data/C_MissingFeatures.csv")
     
-    print(df)
+    # print(df.describe())
 
     missing_data = df.isnull().sum()
 
@@ -54,13 +56,16 @@ def main():
     
     missing_data_indicator = df.isnull()
 
-
-    plt.figure(figsize=(20, 12))
-    sns.heatmap(missing_data_indicator, cmap='viridis', cbar=False)
-    plt.title('Visualisation of missing data')
-    plt.savefig('plots/Section_A_3/missing_data.pdf')
+    if args.plots: # because it takes time to generate this plot, so I plot it only with the flag option
+        plt.figure(figsize=(20, 12))
+        sns.heatmap(missing_data_indicator, cmap='viridis', cbar=False)
+        plt.title('Visualisation of missing data')
+        plt.savefig('plots/Section_A_3/missing_data.pdf')
+        print("=======================================")
+        print('Saving plot at plots/Section_A_3/missing_data.pdf')
+    
     print("=======================================")
-    print('Saving plot at plots/Section_A_3/missing_data.pdf')
+    print('Imputing missing data')
 
     
     df_miss = df[df[miss_features].isnull().any(axis=1)]
@@ -77,10 +82,55 @@ def main():
         df.at[a_row, a_column] = added_vals[j][i]
         
  
+    print('=======================================')
+    print('Now working on outliers: standardisation')
+    
+    # print(df.describe())
+    
+    scaler = StandardScaler()  
+    columns_to_scale = df.columns[1:-1]
+    data_scale = df[columns_to_scale]
+    scaled_data = scaler.fit_transform(data_scale)
+    df_scaled = pd.DataFrame(scaled_data, columns=columns_to_scale)
+    
+    outlier_threshold = 3
+    z_scores = pd.DataFrame((data_scale - data_scale.mean()) / data_scale.std())
+    
+    outliers = (z_scores > outlier_threshold) | (z_scores < -outlier_threshold)
+    
+    outlier_values = data_scale[outliers]
+    
+    print(data_scale[outliers].stack().dropna())
     
     
+    
+    print('=======================================')
+    print('Now working on outliers: model-based GMM')
+    
+    gmm = GM(n_components=2, random_state=42)  # 2 components: normal data (0) vs outlier data (1)
+    gmm.fit(scaled_data)
+    
+    outliers = gmm.predict(scaled_data) == 1
+    df_no_outliers = df[~outliers]
 
-
+    print(df_no_outliers)
+    
+    print(df.describe())
+    print(df_no_outliers.describe())
+    
+    original_distances = pdist(df.iloc[:, 1:-1].values)  
+    no_outliers_distances = pdist(df_no_outliers.iloc[:, 1:-1].values)
+    
+    plt.figure(figsize=(15, 10))
+    sns.histplot(original_distances, label='Original dataset', kde=True)
+    sns.histplot(no_outliers_distances, label='Dataset without outliers', kde=True)
+    plt.title('Pairwise distance comparison')
+    plt.xlabel('Pairwise Distances')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.savefig('plots/Section_A_3/pairwise.pdf')
+    print("=======================================")
+    print('Saving plot at plots/Section_A_3/pairwise.pdf')
     
     if args.plots:
         plt.show()

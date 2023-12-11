@@ -13,6 +13,7 @@
 .*.lb
 token.key
 ap2387.tex
+*__pycache__*
 
 ## Intermediate documents:
 *.dvi

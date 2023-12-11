@@ -8,15 +8,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import pandas as pd
 from itertools import product
 import seaborn as sns
-from sklearn.decomposition import PCA
-from sklearn.model_selection import train_test_split
-from sklearn.cluster import KMeans
-from sklearn.metrics.cluster import contingency_matrix
-from Helpers.HelperFunctions import features_plot, show_clusters_size, show_pca, show_single_silhouette
 from sklearn.mixture import GaussianMixture as GM
 import re
 from sklearn.preprocessing import StandardScaler
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import pdist
 
 plt.style.use('mphil.mplstyle')
 
@@ -97,8 +92,6 @@ def main():
     z_scores = pd.DataFrame((data_scale - data_scale.mean()) / data_scale.std())
     
     outliers = (z_scores > outlier_threshold) | (z_scores < -outlier_threshold)
-    
-    outlier_values = data_scale[outliers]
     
     print(data_scale[outliers].stack().dropna())
     

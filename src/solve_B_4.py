@@ -60,6 +60,8 @@ def main():
     print('The following features have missing data : ')
     print(missing_data[missing_data > 0])
     
+    # Random forest
+    
     print('=======================================')
     print('Now doing random forest')
     print('=======================================')

@@ -34,11 +34,15 @@ def main():
     
     df = pd.read_csv("data/ADS_baselineDataset.csv")
     
+    # Beginning of pre-processing : looking for empty features
+    
     print("=======================================")
     print('Beginning of pre-processing : looking for empty features')
     
     df_vals = df.drop([df.columns[0], df.columns[-1]], axis=1) # removing the sample name column and label (because it's unsupervised)
     df_vals = df_vals.loc[:, (df_vals != 0).any(axis=0)] # remove features with only zeros
+
+    # Correlation between features: removing too-highly correlated features 
     
     print("=======================================")
     print('Now looking at correlations')
@@ -55,6 +59,8 @@ def main():
     df_vals.drop(df_vals.columns[389], axis=1, inplace=True)
     df_vals.drop(df_vals.columns[870], axis=1, inplace=True)
 
+    # Looking for missing data
+
     print("=======================================")
     print('Now looking for missing data')
     
@@ -66,6 +72,8 @@ def main():
     df_vals = pd.get_dummies(df_vals) # one-hot encoding of categorical values. Probably useless but worth doing either way
     
     temp_df = df_vals.copy()
+    
+    # Now performing k-means
     
     print('=======================================')
     print('Clustering : k-Means')
@@ -81,6 +89,7 @@ def main():
     
     df_vals['k-means'] = clusters
     
+    # Now training logistic regression on k-Means
     
     print('=======================================')
     print('Now training classifier : logistic regression') 
@@ -118,6 +127,8 @@ def main():
     feats = x.columns[lr_features].to_numpy()
     print(feats)
     
+    # Now re-training only using best 12 features (4 for each classifiers)
+    
     x_subset = x[x.columns[lr_features]]
     x_subset_vals = scaler.fit_transform(x_subset)
     
@@ -143,6 +154,7 @@ def main():
     print('Classification report:')
     print(lr_class_report_feat)
     
+    # Now doing Gaussian Mixture
     
     print('=======================================')
     print('Clustering : Gaussian Mixture') 
@@ -159,10 +171,10 @@ def main():
     print('Contingency matrix. kMeans vs GM')
     print(contingency_matrix(df_vals['k-means'], df_vals['gm']))
     
+    # Now training logistic regression on Gaussian Mixture output
+    
     print('=======================================')
     print('Now training classifier : logistic regression') 
-    
-    
     
     x_gm = temp_df.drop('gm', axis=1)
     y_gm = temp_df['gm']
@@ -193,6 +205,8 @@ def main():
     print(lr_class_report_gm)
     print('=======================================')
     
+    # Now retraining using only 12 best features
+    
     lr_features_gm = np.argsort(lr_gm.coef_)[:,:4].flatten()
     print('The 4 best features for each classifier:')
     feats_gm = x_gm.columns[lr_features_gm].to_numpy()
@@ -222,6 +236,8 @@ def main():
     print('=======================================')
     print('Classification report:')
     print(lr_class_report_feat_gm)
+    
+    # Visualizing data
     
     print('=======================================')
     print('Now visualizing data : PCA')

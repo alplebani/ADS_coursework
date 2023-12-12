@@ -17,6 +17,7 @@ import re
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
+from sklearn.tree import DecisionTreeClassifier as DTC
 
 plt.style.use('mphil.mplstyle')
 
@@ -80,7 +81,7 @@ def main():
     oob_errs = []
     
     for tree in trees:
-        rf_classifier = RandomForestClassifier(n_estimators=int(tree), oob_score=True, random_state=42)
+        rf_classifier = RandomForestClassifier(n_estimators=int(tree), oob_score=True, random_state=4999)
         
         rf_classifier.fit(x_train, y_train)        
         oob_error = 1 - rf_classifier.oob_score_
@@ -99,7 +100,10 @@ def main():
 
     print("Optimal number of trees : {}".format(int(best_trees)))
     
+    # best_trees = 260
     
+    rf_classifier = RandomForestClassifier(n_estimators=int(best_trees), oob_score=True, random_state=42)
+    rf_classifier.fit(x_train, y_train)
     feature_importances = rf_classifier.feature_importances_
 
     feature_importance_dict = dict(zip(x_train.columns, feature_importances))
@@ -123,33 +127,63 @@ def main():
     print('Saving plot at plots/Section_B_4/forest_ranking_{}.pdf'.format(number_of_features))
     
     print('=======================================')
-    print('Now re-training the model using only first features')
+    print('Now re-training the model using only first {} features'.format(number_of_features))
     
-    values_features = [10, 20, 30, 50, 70, 100]
+    # n_feat = features[:number_of_features]
+    # print(type(n_feat))
+    # df_feat = df[['Fea64', 'Fea70']]
+    # df_feat = df[n_feat]
+    # print(df_feat)
+    # sel_feats = x.columns[n_feat]
+    # x_train_subset = x_train[sel_feats]
+    # x_test_subset = x_test[sel_feats]
+    # model_subset = RandomForestClassifier(n_estimators=best_trees, random_state=42)
+    # model_subset.fit(x_train_subset, y_train)
+    # y_pred_subset = model_subset.predict(x_test_subset)
+    # print('Accuracy for first {0} features : {1}'.format(number_of_features,accuracy_score(y_test, y_pred_subset)))
+    # print('Error for first {0} features : {1}'.format(number_of_features,1 -accuracy_score(y_test, y_pred_subset)))
     
-    accuracies = []
-    errors = []
-    
-    for val in values_features:
-        n_feat = features[:val]
-        print(n_feat)
-        sel_feats = x.columns[n_feat]
-        x_train_subset = x_train[sel_feats]
-        x_test_subset = x_test[sel_feats]
-        model_subset = RandomForestClassifier(n_estimators=best_trees, random_state=42)
-        model_subset.fit(x_train_subset, y_train)
-        y_pred_subset = model_subset.predict(x_test_subset)
-        accuracies.append(accuracy_score(y_test, y_pred_subset))
-        errors.append(1 -accuracy_score(y_test, y_pred_subset))
-    
-    plt.figure(figsize=(15,10))
-    plt.plot(values_features, errors)
-    plt.xlabel('Number of features used for training')
-    plt.ylabel('Error')
-    plt.title('Best number of features')
-    plt.savefig('plots/Section_B_4/number_of_features.pdf')
     print('=======================================')
-    print('Saving plot at plots/Section_B_4/number_of_features.pdf')
+    print('Now doing different model : decision trees')
+    print('=======================================')
+    
+    tree_x_train, tree_x_test, tree_y_train, tree_y_test = train_test_split(x, y, test_size=0.33, random_state=4999)
+    
+    scaler = StandardScaler()
+    tree_x_train_scaled = scaler.fit_transform(tree_x_train)
+    tree_x_test_scaled = scaler.fit_transform(tree_x_test)
+    
+    tree = DTC(random_state=4999)
+    tree.fit(tree_x_train_scaled, tree_y_train)
+    tree_y_pred = tree.predict(tree_x_test_scaled)
+    tree_acc = accuracy_score(tree_y_test, tree_y_pred)
+    print("Accuracy : {}".format(tree_acc))
+    print('Test set classification error : {}'.format(float(1 - tree_acc)))
+    print('=======================================')
+    print('Classification report:')
+    print(classification_report(tree_y_test, tree_y_pred))
+    
+    tree_features = tree.feature_importances_
+    tree_feature_importance_dict = dict(zip(tree_x_train.columns, tree_features))
+
+    tree_sorted_features = sorted(tree_feature_importance_dict.items(), key=lambda x: x[1], reverse=True)
+    tree_features, tree_importances = zip(*tree_sorted_features)
+    
+    tree_first_importances = tree_importances[:number_of_features]
+    tree_first_features = tree_features[:number_of_features]
+
+    plt.figure(figsize=(15,10))
+    plt.barh(range(len(tree_first_features)), tree_first_importances, align='center')
+    plt.yticks(range(len(tree_first_features)), tree_first_features)
+    plt.xlabel('Feature Importance')
+    plt.ylabel('Feature')
+    plt.title('Input feature ranking for decision tree')
+    plt.savefig('plots/Section_B_4/trees_ranking_{}.pdf'.format(number_of_features))
+    print('=======================================')
+    print('Saving plot at plots/Section_B_4/trees_ranking_{}.pdf'.format(number_of_features))
+    
+    # TODO: re-train with first 20 features
+
     
     if args.plots:
         plt.show()
@@ -165,6 +199,6 @@ if __name__ == "__main__":
     main()
     end_time = time.time()
     print("=======================================")
-    print("Section B:2 finished. Exiting!")
+    print("Section B:4 finished. Exiting!")
     print("Time it took to run the code : {} seconds". format(end_time - start_time))
     print("=======================================")

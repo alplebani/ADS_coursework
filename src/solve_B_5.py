@@ -6,22 +6,15 @@ import time
 import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
-from itertools import product
-import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import classification_report
 from sklearn.mixture import GaussianMixture as GM
-import re
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.tree import DecisionTreeClassifier as DTC
 from sklearn.cluster import KMeans
-from sklearn_extra.cluster import KMedoids
 from sklearn.metrics.cluster import contingency_matrix
-from Helpers.HelperFunctions import features_plot, show_clusters_size, show_pca, show_single_silhouette
+from Helpers.HelperFunctions import show_clusters_size
 from sklearn.linear_model import LogisticRegression as LR
 from sklearn.decomposition import PCA
 

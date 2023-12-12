@@ -19,3 +19,4 @@ dependencies:
   - tqdm
   - uncertainties
   - scikit-plot
+  - scikit-learn-extra

@@ -9,7 +9,7 @@ import scikitplot as skplt
 # Helper functions 
 # ===============================================
 
-def features_plot(score, coeff, n1, n2, labels):
+def features_plot(score, coeff, n1, n2, labels, folder):
     '''
     Function to generate the features plot in the PCA
     '''
@@ -29,9 +29,9 @@ def features_plot(score, coeff, n1, n2, labels):
     plt.ylabel("PC{}".format(n2+1))
     plt.title('PC' + str(n1+1) + ' vs PC' + str(n2+1) +', features direction')
     plt.grid()
-    plt.savefig('plots/Section_A/features_direction.pdf')
+    plt.savefig('plots/Section_{}/features_direction.pdf'.format(folder))
     print("=======================================")
-    print('Saving plot at plots/Section_A/features_direction.pdf')
+    print('Saving plot at plots/Section_{}/features_direction.pdf'.format(folder))
     
 def show_clusters_size(clusters):
     '''
@@ -41,7 +41,7 @@ def show_clusters_size(clusters):
     print(dict(zip(unique, counts)))
     return len(dict(zip(unique, counts)))
     
-def show_pca(df_pca, clusters, name):
+def show_pca(df_pca, clusters, name, folder):
     '''
     Function that plots the events in each centroid with a PCA with 2 components
     '''
@@ -52,22 +52,22 @@ def show_pca(df_pca, clusters, name):
     plt.xlabel('PC1')
     plt.ylabel('PC2')
     plt.legend()
-    plt.savefig('plots/Section_A/kMeans_{}.pdf'.format(name))
+    plt.savefig('plots/Section_{0}/kMeans_{1}.pdf'.format(folder, name))
     print("=======================================")
-    print('Saving plot at plots/Section_A/kMeans_{}.pdf'.format(name))
+    print('Saving plot at plots/Section_{0}/kMeans_{1}.pdf'.format(folder, name))
 
 
-def show_single_silhouette(k_model, k, df_model, name):
+def show_single_silhouette(k_model, k, df_model, name, folder):
     '''
     Function that plots the single silhouette for a specific k-Means model
     '''
     
     palette = sns.color_palette('Set1', k)
-    silhouette_avg = silhouette_score( df_model, k_model)
+    # silhouette_avg = silhouette_score( df_model, k_model)
     sing_silhouette_value = silhouette_samples(df_model, k_model)
     skplt.metrics.plot_silhouette(df_model, k_model)
     plt.xlim(np.min(sing_silhouette_value), np.max(sing_silhouette_value))
     plt.axvline(x=0, c='black')
-    plt.savefig('plots/Section_A/silhouette_{0}_{1}.pdf'.format(k, name))
+    plt.savefig('plots/Section_{0}/silhouette_{1}_{2}.pdf'.format(folder, k, name))
     print("=======================================")
-    print('Saving plot at plots/Section_A/silhouette_{0}_{1}.pdf'.format(k, name))
+    print('Saving plot at plots/Section_{0}/silhouette_{1}_{2}.pdf'.format(folder, k, name))

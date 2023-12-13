@@ -30,7 +30,9 @@ python src/solve_A_1.py -h
 ```
 There are two possible flags that can be called: ```--features``` and ```--plots```. The former is used to generate the seaborn pairplot for the first 20 features. This flag was implemented because it takes a lot of time to generate the plot. The latter is a flag that is implemented also in all the other codes, and when set it shows the plots generated while running the code instead of simply saving them in the specific ```plots``` folder, which for this part is ```plots/Section_A_1/```
 
-This code starts by generating density plots for the first 20 features. Then it applies PCA and it visualises the PCA, as well as the explained variance. Afterwards, the code will perform k-means on two subsets of the data, with the default number of clusters (8). After displaying the contingency matrix, the code tests values of k from 2 to 10, and for each it plots the silhouette and it displays the contingency matrix. Finally, the code will display the two clusters on the PCA, and then it will apply k-means after doing the PCA. These two plots can be found in ```plots/Section_A_1/kMeans_kMeans_before.pdf``` and in ```plots/Section_A_1/kMeans_PCA_before.pdf```, respectively. The code takes 19 seconds to run without the ```--features``` flag and 
+This code starts by generating density plots for the first 20 features. Then it applies PCA and it visualises the PCA, as well as the explained variance. Afterwards, the code will perform k-means on two subsets of the data, with the default number of clusters (8). After displaying the contingency matrix, the code tests values of k from 2 to 10, and for each it plots the silhouette and it displays the contingency matrix. Finally, the code will display the two clusters on the PCA, and then it will apply k-means after doing the PCA. These two plots can be found in ```plots/Section_A_1/kMeans_kMeans_before.pdf``` and in ```plots/Section_A_1/kMeans_PCA_before.pdf```, respectively.
+
+The code takes 19 seconds to run without the ```--features``` flag and 3 seconds without.
 
 # Part 2
 
@@ -40,13 +42,17 @@ This code starts showing the labels in the dataset, displaying also the number o
 
 After this, the code will look for duplicated rows, displaying which rows are equal, and in particular whether the duplicated rows have also the same label. If the labels are different, both rows are removed from the dataset, otherwise only the first one is kept.
 
-Finally, the code will try to predict the classification labels of the missing labels, plotting the confusion matrix of the k-nearest neighbour classifier and displaying the true labels, the true labels plus the predicted missing labels and also the predicted labels for the whole dataset, to check how well the classifier performed. The code takes 0.8 seconds to run
+Finally, the code will try to predict the classification labels of the missing labels, plotting the confusion matrix of the k-nearest neighbour classifier and displaying the true labels, the true labels plus the predicted missing labels and also the predicted labels for the whole dataset, to check how well the classifier performed.
+
+The code takes 0.8 seconds to run
 
 # Part 3
 
 The code for this exercise can be found in [src/solve_A_3.py](https://gitlab.developers.cam.ac.uk/phy/data-intensive-science-mphil/m1_assessment/ap2387/-/blob/main/src/solve_A_3.py). The ```--heatmap``` is an additional flag to the ```--plots```, which plots the ```sns.heatmap``` plot for the missing features.
 
-This code looks for missing features, displaying which samples and which features have missing, alongside plotting the missing features with ```sns.heatmap``` if the ```--feature``` flag is selected, with this plot being saved in ```plots/Section_A_3/missing_data.pdf```. Then the code will look for the outliers, first with the standardisation and then with the model-based GMM. With standardisation, the values for which $Z>3$ are printed out, whereas with the latter, the predicted outliers are removed from the dataframe, and then the datasets with and without the outliers are compared with the pairwise distance comparison, whose plot is saved in ```plots/Section_A_3/pairwise.pdf```. The code takes 19 seconds to run with the ```--heatmap``` flag and 3 seconds without.
+This code looks for missing features, displaying which samples and which features have missing, alongside plotting the missing features with ```sns.heatmap``` if the ```--feature``` flag is selected, with this plot being saved in ```plots/Section_A_3/missing_data.pdf```. Then the code will look for the outliers, first with the standardisation and then with the model-based GMM. With standardisation, the values for which $Z>3$ are printed out, whereas with the latter, the predicted outliers are removed from the dataframe, and then the datasets with and without the outliers are compared with the pairwise distance comparison, whose plot is saved in ```plots/Section_A_3/pairwise.pdf```.
+
+The code takes 19 seconds to run with the ```--heatmap``` flag and 3 seconds without.
 
 ## SECTION B
 

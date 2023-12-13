@@ -19,6 +19,7 @@ def main():
     
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--plots', help='Flag: if selected, will show the plots instead of only saving them', required=False, action='store_true')
+    parser.add_argument('--heatmap', help='Flag: if selected, will generate the heatmap plot for the missing features', required=False, action='store_true')
     args = parser.parse_args()
     
     my_seed = 4999 # random seed
@@ -53,7 +54,7 @@ def main():
     
     missing_data_indicator = df.isnull()
 
-    if args.plots: # because it takes time to generate this plot, so I plot it only with the flag option
+    if args.heatmap: # because it takes time to generate this plot, so I plot it only with the flag option
         plt.figure(figsize=(20, 12))
         sns.heatmap(missing_data_indicator, cmap='viridis', cbar=False)
         plt.title('Visualisation of missing data')
@@ -96,6 +97,7 @@ def main():
     
     outliers = (z_scores > outlier_threshold) | (z_scores < -outlier_threshold) # boolean variable used to select data from the df later 
     
+    print('Outliers : ')
     print(data_scale[outliers].stack().dropna()) # printing outliers
     
     print('=======================================')
@@ -108,13 +110,6 @@ def main():
     
     outliers = gmm.predict(scaled_data) == 1 # outliers are the ones with prediction equal to 1
     df_no_outliers = df[~outliers] # remove outliers
-
-    print(df_no_outliers)
-    
-    # Compare using the describe() function of the dataframe
-    
-    print(df.describe())
-    print(df_no_outliers.describe())
     
     # Compare plotting the pairwise distance
     

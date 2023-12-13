@@ -24,7 +24,6 @@ def main():
     
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--plots', help='Flag: if selected, will show the plots instead of only saving them', required=False, action='store_true')
-    parser.add_argument('-n', '--number', help='Number of features you want to display in the plot for the ranking', type=int, required=False, default=20)
     args = parser.parse_args()
     
     my_seed = 4999 # random seed to have reproducible code

@@ -63,7 +63,7 @@ def show_single_silhouette(k_model, k, df_model, name, folder):
     '''
     
     palette = sns.color_palette('Set1', k)
-    # silhouette_avg = silhouette_score( df_model, k_model)
+    silhouette_avg = silhouette_score( df_model, k_model)
     sing_silhouette_value = silhouette_samples(df_model, k_model)
     skplt.metrics.plot_silhouette(df_model, k_model)
     plt.xlim(np.min(sing_silhouette_value), np.max(sing_silhouette_value))

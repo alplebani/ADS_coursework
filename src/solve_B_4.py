@@ -12,7 +12,6 @@ from sklearn.metrics import classification_report
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.tree import DecisionTreeClassifier as DTC
 from sklearn.linear_model import LogisticRegression as LR
 
 plt.style.use('mphil.mplstyle')

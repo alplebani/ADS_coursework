@@ -162,17 +162,21 @@ def main():
     print('Accuracy for first {0} features : {1}'.format(number_of_features, accuracy_score(y_test, y_pred_subset)))
     print('Error for first {0} features : {1}'.format(number_of_features, 1 - accuracy_score(y_test, y_pred_subset)))
     
+    # Now doing logistic regression
+    
     print('=======================================')
     print('Now doing different model : Logistic regression')
     print('=======================================')
     
-    scaler = StandardScaler()
+    scaler = StandardScaler() # rescaling of data
     x_train = scaler.fit_transform(x_train)
     x_test = scaler.fit_transform(x_test)
     
     lr = LR()
     lr.fit(x_train, y_train)
     y_pred_lr = lr.predict(x_test)
+    
+    # Evaluating performance: accuracy and classification report
     
     lr_accuracy = accuracy_score(y_test, y_pred_lr)
     lr_class_report = classification_report(y_test, y_pred_lr)
@@ -183,7 +187,7 @@ def main():
     print(lr_class_report)
     print('=======================================')
     
-    lr_features = np.argsort(lr.coef_)[:,:4].flatten()
+    lr_features = np.argsort(lr.coef_)[:,:4].flatten() # extracting coefficients (importances)
     print('The 4 best features for each classifier:')
     feats = x.columns[lr_features].to_numpy()
     print(feats)
@@ -195,14 +199,17 @@ def main():
     print('=======================================')
     print('Now re-training the model using only those first 12 features')
 
+    # Re-training with only best features
 
     x_subset = x[x.columns[lr_features]]
     
-    x_subset_train, x_subset_test, y_train, y_test = train_test_split(x_subset, y, test_size=0.2, random_state=my_seed)
+    x_subset_train, x_subset_test, y_train, y_test = train_test_split(x_subset, y, test_size=0.2, random_state=my_seed) # splitting dataset in training and testing
     
     lr_feat = LR(max_iter=1000) # implemented because convergence wasn't reached with standard value of 100
     lr_feat.fit(x_subset_train, y_train)
     y_pred_lr_feat = lr_feat.predict(x_subset_test)
+    
+    # Evaluating performance: accuracy and classification report
     
     lr_accuracy_feat = accuracy_score(y_test, y_pred_lr_feat)
     lr_class_report_feat = classification_report(y_test, y_pred_lr_feat)
@@ -213,7 +220,7 @@ def main():
     print(lr_class_report_feat)
 
     
-    if args.plots:
+    if args.plots: # showing the plots
         plt.show()
    
     

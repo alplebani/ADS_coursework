@@ -27,7 +27,7 @@ def main():
     parser.add_argument('-n', '--number', help='Number of features you want to display in the plot for the ranking', type=int, required=False, default=20)
     args = parser.parse_args()
     
-    np.random.seed(4999)
+    my_seed = 4999 # random seed to have reproducible code
     
     print('Reading dataset')
     print("=======================================")
@@ -37,7 +37,7 @@ def main():
     # Beginning of pre-processing : looking for empty features
     
     print("=======================================")
-    print('Beginning of pre-processing : looking for empty features')
+    print('Beginning of pre-processing : looking for empty features') # removing columns with all zeros, because they carry no information
     
     df_vals = df.drop([df.columns[0], df.columns[-1]], axis=1) # removing the sample name column and label (because it's unsupervised)
     df_vals = df_vals.loc[:, (df_vals != 0).any(axis=0)] # remove features with only zeros
@@ -50,7 +50,7 @@ def main():
     cor_matrix = df_vals.corr().abs()
     cor_col = cor_matrix.unstack()
     print("The highest correlations are:")
-    print(cor_col.sort_values(ascending=False)[960:980:2])
+    print(cor_col.sort_values(ascending=False)[960:980:2])# printing out highest correlations
     
     print("---------------------------------------")
     print('Removing features with correlation greater than 90%: Fea345, Fea388 and Fea869')
@@ -79,15 +79,15 @@ def main():
     print('Clustering : k-Means')
     print('=======================================')
     
-    scaler = StandardScaler()
+    scaler = StandardScaler() # rescaling the data
     x = scaler.fit_transform(df_vals)
     
-    km = KMeans(random_state=4999, n_init=10, n_clusters=3, max_iter=1000000) # 3 clusters chosen because we have three targets
+    km = KMeans(random_state=my_seed, n_init=10, n_clusters=3, max_iter=1000000) # 3 clusters chosen because we have three targets
     k = km.fit(x)
     clusters = k.predict(x)
-    n_clusters = show_clusters_size(clusters)
+    n_clusters = show_clusters_size(clusters) # printing number of events in each cluster
     
-    df_vals['k-means'] = clusters
+    df_vals['k-means'] = clusters # adding the labels obtained in the df
     
     # Now training logistic regression on k-Means
     
@@ -96,20 +96,22 @@ def main():
     
     x = df_vals.drop('k-means', axis=1)
     y = df_vals['k-means']
-    x_vals = scaler.fit_transform(x)
+    x_vals = scaler.fit_transform(x) # rescaling data
     
-    x_train, x_test, y_train, y_test = train_test_split(x_vals, y, test_size=0.33, random_state=4999)
+    x_train, x_test, y_train, y_test = train_test_split(x_vals, y, test_size=0.33, random_state=my_seed) # splitting between train and test
     
-    lr = LR(random_state=4999, multi_class='multinomial')
+    lr = LR(random_state=my_seed, multi_class='multinomial') # doing linear regression
     lr.fit(x_train, y_train)
     y_pred = lr.predict(x_test)
     full_y = lr.predict(x_vals)
     
-    df_vals['LR_kMeans'] = full_y
+    df_vals['LR_kMeans'] = full_y # adding labels to the df
     
     print('=======================================')
     print('Predicted outputs with linear regression :')
     print(df_vals['LR_kMeans'].value_counts())
+    
+    # Evaluating performance: accuracy and classification report
 
     lr_accuracy = accuracy_score(y_test, y_pred)
     lr_class_report = classification_report(y_test, y_pred)
@@ -122,7 +124,7 @@ def main():
     print(lr_class_report)
     print('=======================================')
     
-    lr_features = np.argsort(lr.coef_)[:,:4].flatten()
+    lr_features = np.argsort(lr.coef_)[:,:4].flatten() # extracting best features
     print('The 4 best features for each classifier:')
     feats = x.columns[lr_features].to_numpy()
     print(feats)
@@ -132,19 +134,21 @@ def main():
     x_subset = x[x.columns[lr_features]]
     x_subset_vals = scaler.fit_transform(x_subset)
     
-    x_subset_train, x_subset_test, y_train, y_test = train_test_split(x_subset_vals, y, test_size=0.2, random_state=4999)
+    x_subset_train, x_subset_test, y_train, y_test = train_test_split(x_subset_vals, y, test_size=0.2, random_state=my_seed) # splitting between train and test
     
     lr_feat = LR(max_iter=1000) # implemented because convergence wasn't reached with standard value of 100
     lr_feat.fit(x_subset_train, y_train)
     y_pred_lr_feat = lr_feat.predict(x_subset_test)
     full_y_feat = lr_feat.predict(x_subset_vals)
     
-    df_vals['LR_KM_12feat'] = full_y_feat
+    df_vals['LR_KM_12feat'] = full_y_feat # adding labels to the df
     
     print('=======================================')
     print('Predicted outputs with linear regression for first 12 features:')
     print(df_vals['LR_KM_12feat'].value_counts())
     print('=======================================')
+    
+    # Evaluating performance: accuracy and classification report
     
     lr_accuracy_feat = accuracy_score(y_test, y_pred_lr_feat)
     lr_class_report_feat = classification_report(y_test, y_pred_lr_feat)
@@ -160,13 +164,15 @@ def main():
     print('Clustering : Gaussian Mixture') 
     print('=======================================')
     
-    gm = GM(n_components=3, random_state=4999, max_iter=1000000)
+    gm = GM(n_components=3, random_state=my_seed, max_iter=1000000) # gaussian mizture with 3 components
     g = gm.fit(x)
     clusters_gm = g.predict(x)
-    n_clusters_gm = show_clusters_size(clusters_gm)
+    n_clusters_gm = show_clusters_size(clusters_gm) # printing number of events in each cluster
     
     df_vals['gm'] = clusters_gm
     temp_df['gm'] = clusters_gm
+    
+    # Printing contingency matrix
 
     print('Contingency matrix. kMeans vs GM')
     print(contingency_matrix(df_vals['k-means'], df_vals['gm']))
@@ -178,22 +184,23 @@ def main():
     
     x_gm = temp_df.drop('gm', axis=1)
     y_gm = temp_df['gm']
-    x_vals_gm = scaler.fit_transform(x_gm)
+    x_vals_gm = scaler.fit_transform(x_gm) # rescaling data
     
-    x_train_gm, x_test_gm, y_train_gm, y_test_gm = train_test_split(x_vals_gm, y_gm, test_size=0.33, random_state=4999)
+    x_train_gm, x_test_gm, y_train_gm, y_test_gm = train_test_split(x_vals_gm, y_gm, test_size=0.33, random_state=my_seed) # splitting dataset in test and training
     
-    lr_gm = LR(random_state=4999, multi_class='multinomial')
+    lr_gm = LR(random_state=my_seed, multi_class='multinomial') # doing logistic regression
     lr_gm.fit(x_train_gm, y_train_gm)
     y_pred_gm = lr_gm.predict(x_test_gm)
     full_y_gm = lr_gm.predict(x_vals_gm)
     
-    df_vals['LR_gm'] = full_y_gm
+    df_vals['LR_gm'] = full_y_gm # adding labels to df
     
     print('=======================================')
     print('Predicted outputs with linear regression for first 12 features:')
     print(df_vals['LR_gm'].value_counts())
     print('=======================================')
     
+    # Evaluating performance: accuracy and classification report
     
     lr_accuracy_gm = accuracy_score(y_test_gm, y_pred_gm)
     lr_class_report_gm = classification_report(y_test_gm, y_pred_gm)
@@ -207,27 +214,29 @@ def main():
     
     # Now retraining using only 12 best features
     
-    lr_features_gm = np.argsort(lr_gm.coef_)[:,:4].flatten()
+    lr_features_gm = np.argsort(lr_gm.coef_)[:,:4].flatten() # extracting best features
     print('The 4 best features for each classifier:')
     feats_gm = x_gm.columns[lr_features_gm].to_numpy()
     print(feats_gm)
     
     x_subset_gm = x_gm[x_gm.columns[lr_features_gm]]
-    x_subset_vals_gm = scaler.fit_transform(x_subset_gm)
+    x_subset_vals_gm = scaler.fit_transform(x_subset_gm) # rescaling data
     
-    x_subset_train_gm, x_subset_test_gm, y_train_gm, y_test_gm = train_test_split(x_subset_vals_gm, y_gm, test_size=0.2, random_state=4999)
+    x_subset_train_gm, x_subset_test_gm, y_train_gm, y_test_gm = train_test_split(x_subset_vals_gm, y_gm, test_size=0.2, random_state=my_seed) # splitting dataset in training and testing
     
     lr_feat_gm = LR(max_iter=1000) # implemented because convergence wasn't reached with standard value of 100
     lr_feat_gm.fit(x_subset_train_gm, y_train_gm)
     y_pred_lr_feat_gm = lr_feat_gm.predict(x_subset_test_gm)
     full_y_feat_gm = lr_feat_gm.predict(x_subset_vals_gm)
     
-    df_vals['LR_gm_12feat'] = full_y_feat_gm
+    df_vals['LR_gm_12feat'] = full_y_feat_gm # adding labels to the df
     
     print('=======================================')
     print('Predicted outputs with linear regression for first 12 features:')
     print(df_vals['LR_gm_12feat'].value_counts())
     print('=======================================')
+    
+    # Evaluating performance: accuracy and classification report
     
     lr_accuracy_feat_gm = accuracy_score(y_test_gm, y_pred_lr_feat_gm)
     lr_class_report_feat_gm = classification_report(y_test_gm, y_pred_lr_feat_gm)
@@ -287,10 +296,7 @@ def main():
     print("=======================================")
     print('Saving plot at plots/Section_B_5/PCA.pdf')
     
-    
-    
-    
-    if args.plots:
+    if args.plots: # showing the plots
         plt.show()
    
     

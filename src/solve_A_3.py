@@ -21,14 +21,16 @@ def main():
     parser.add_argument('--plots', help='Flag: if selected, will show the plots instead of only saving them', required=False, action='store_true')
     args = parser.parse_args()
     
-    np.random.seed(4999)
+    my_seed = 4999
     
     print('Reading dataset')
     print("=======================================")
     
+    # Reading dataset
+    
     df = pd.read_csv("data/C_MissingFeatures.csv")
     
-    # print(df.describe())
+    # Looking for missing data
 
     missing_data = df.isnull().sum()
 
@@ -66,7 +68,7 @@ def main():
     df_miss = df[df[miss_features].isnull().any(axis=1)]
     df_not_miss = df.dropna(subset=miss_features)
     
-    gmm = GM(n_components=1, random_state=4999)
+    gmm = GM(n_components=1, random_state=my_seed)
     gmm.fit(df_not_miss[miss_features])
     
     added_vals = gmm.sample(len(df_miss))[0]

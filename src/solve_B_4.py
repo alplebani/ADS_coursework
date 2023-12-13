@@ -21,17 +21,17 @@ def main():
     
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--plots', help='Flag: if selected, will show the plots instead of only saving them', required=False, action='store_true')
-    parser.add_argument('-n', '--number', help='Number of features you want to display in the plot for the ranking', type=int, required=False, default=12)
+    parser.add_argument('-n', '--number', help='Number of the most important features you want to include in the training', type=int, required=False, default=12)
     args = parser.parse_args()
     
-    np.random.seed(4999)
+    my_seed = 4999 # random seed to have reproducible code
     
     print('Reading dataset')
     
     df = pd.read_csv("data/ADS_baselineDataset.csv")
     
     print("=======================================")
-    print('Beginning of pre-processing : looking for empty features')
+    print('Beginning of pre-processing : looking for empty features') # removing columns with all zeros, because they carry no information
     
     df_vals = df.drop(df.columns[0], axis=1) # removing the sample name column
     df_vals_no_lab = df_vals.drop(df_vals.columns[-1], axis=1) # removing label
@@ -43,7 +43,7 @@ def main():
     cor_matrix = df_vals_no_lab.corr().abs()
     cor_col = cor_matrix.unstack()
     print("The highest correlations are:")
-    print(cor_col.sort_values(ascending=False)[960:980:2])
+    print(cor_col.sort_values(ascending=False)[960:980:2]) # printing out highest correlations
     
     print("---------------------------------------")
     print('Removing features with correlation greater than 90%: Fea345, Fea388 and Fea869')
@@ -55,12 +55,12 @@ def main():
     print("=======================================")
     print('Now looking for missing data')
     
-    missing_data = df_vals.isnull().sum()
+    missing_data = df_vals.isnull().sum() # looking for missing data
 
     print('The following features have missing data : ')
     print(missing_data[missing_data > 0])
     
-    # Random forest
+    # Now doing random forest classifier
     
     print('=======================================')
     print('Now doing random forest')
@@ -71,13 +71,17 @@ def main():
     x = df_vals.drop('type', axis=1)
     y = df_vals['type']
     
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=4999)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=my_seed) # splitting dataset in training and testing
+    
+    # Scaler not applied because random forest doesn't need scaled data
     
     rf = RandomForestClassifier()
     
     rf.fit(x_train, y_train)
     
     y_pred = rf.predict(x_test)
+    
+    # Evaluating performance: accuracy and classification report
     
     accuracy = accuracy_score(y_test, y_pred)
     
@@ -89,15 +93,19 @@ def main():
     print('Classification report:')
     print(class_report)
     
-    trees = np.linspace(1, 131, 14)
+    # Optimising the forest: looking for different number of trees
+    
+    trees = np.linspace(1, 131, 14) 
        
     accuracies = []
     
     for tree in trees:
-        rf_classifier = RandomForestClassifier(n_estimators=int(tree), oob_score=True, random_state=4999)
+        rf_classifier = RandomForestClassifier(n_estimators=int(tree), oob_score=True, random_state=my_seed)
         rf_classifier.fit(x_train, y_train)        
         acc = rf_classifier.oob_score_
         accuracies.append(acc)
+        
+    # Plotting the results to select the optimal number of trees
 
     plt.figure(figsize=(15,10))
     plt.plot(trees, accuracies, marker='o')
@@ -109,22 +117,24 @@ def main():
     print('Saving plot at plots/Section_B_4/forest_optimisation.pdf')
 
     best_trees = trees[np.argmax(accuracies)]
-    
-    # best_trees = 121
 
     print("Optimal number of trees : {}".format(int(best_trees)))
     
-    rf_classifier = RandomForestClassifier(n_estimators=int(best_trees), oob_score=True, random_state=4999)
+    # Re-training with the optimal number of trees
+    
+    rf_classifier = RandomForestClassifier(n_estimators=int(best_trees), oob_score=True, random_state=my_seed)
     rf_classifier.fit(x_train, y_train)
-    feature_importances = rf_classifier.feature_importances_
+    feature_importances = rf_classifier.feature_importances_ # extracting importances
 
-    rank_feat = np.argsort(np.abs(feature_importances))[::-1]
+    rank_feat = np.argsort(np.abs(feature_importances))[::-1] # sorting features by importance
     rank_import = feature_importances[rank_feat]
     
-    number_of_features = args.number
+    number_of_features = args.number # Number of the most important features you want to include in the training
     
     first_features = rank_feat[:number_of_features]
     first_importances = rank_import[:number_of_features]
+    
+    # Plotting feature importance
 
     plt.figure(figsize=(15,10))
     plt.barh(range(len(first_features)), first_importances, align='center')
@@ -136,13 +146,17 @@ def main():
     print('=======================================')
     print('Saving plot at plots/Section_B_4/forest_ranking_{}.pdf'.format(number_of_features))
     
+    # Re-training with only best features
+    
     print('=======================================')
     print('Now re-training the model using only first {} features'.format(number_of_features))
     
     sel_feats = x.columns[first_features]
     x_train_subset = x_train[sel_feats]
     x_test_subset = x_test[sel_feats]
-    model_subset = RandomForestClassifier(n_estimators=int(best_trees), random_state=4999)
+    
+    model_subset = RandomForestClassifier(n_estimators=int(best_trees), random_state=my_seed)
+    
     model_subset.fit(x_train_subset, y_train)
     y_pred_subset = model_subset.predict(x_test_subset)
     print('Accuracy for first {0} features : {1}'.format(number_of_features, accuracy_score(y_test, y_pred_subset)))
@@ -184,7 +198,7 @@ def main():
 
     x_subset = x[x.columns[lr_features]]
     
-    x_subset_train, x_subset_test, y_train, y_test = train_test_split(x_subset, y, test_size=0.2, random_state=4999)
+    x_subset_train, x_subset_test, y_train, y_test = train_test_split(x_subset, y, test_size=0.2, random_state=my_seed)
     
     lr_feat = LR(max_iter=1000) # implemented because convergence wasn't reached with standard value of 100
     lr_feat.fit(x_subset_train, y_train)

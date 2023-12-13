@@ -48,6 +48,8 @@ The code for this exercise can be found in [src/solve_A_3.py](https://gitlab.dev
 
 This code looks for missing features, displaying which samples and which features have missing, alongside plotting the missing features with ```sns.heatmap``` if the ```--feature``` flag is selected, with this plot being saved in ```plots/Section_A_3/missing_data.pdf```. Then the code will look for the outliers, first with the standardisation and then with the model-based GMM. With standardisation, the values for which $Z>3$ are printed out, whereas with the latter, the predicted outliers are removed from the dataframe, and then the datasets with and without the outliers are compared with the pairwise distance comparison, whose plot is saved in ```plots/Section_A_3/pairwise.pdf```. The code takes 19 seconds to run with the ```--heatmap``` flag and 3 seconds without.
 
+## SECTION B
+
 # Part 4
 
 The code for this exercise can be found in [src/solve_B_4.py](https://gitlab.developers.cam.ac.uk/phy/data-intensive-science-mphil/m1_assessment/ap2387/-/blob/main/src/solve_B_4.py). The ```-n, --number``` option is an additional parser option to the ```--plots``` flag, and it determined the number of the most important features that can be included in the training in part e), with this value set to default at 12.

@@ -21,7 +21,9 @@ def main():
     parser.add_argument('--plots', help='Flag: if selected, will show the plots instead of only saving them', required=False, action='store_true')
     args = parser.parse_args()
     
-    np.random.seed(4999)
+    my_seed = 4999 # random seed
+    
+    # Reading dataset
     
     print('Reading dataset')
     print("=======================================")
@@ -30,6 +32,7 @@ def main():
     
     print("=======================================")
     
+    # Counting labels    
     
     print(df['classification'].value_counts())
     label_counter = df['classification'].value_counts().values
@@ -50,25 +53,22 @@ def main():
     print('Missing labels : {}'.format(n_rows - tot_labels))
 
     
-    df_values = df.iloc[:, 1:-1]
+    df_values = df.iloc[:, 1:-1] # removing sample_name and labels
     
-    df = df.iloc[:, 1:]
+    df = df.iloc[:, 1:] # removing sample_name
     
-    duplicates = df_values.duplicated(keep=False)
+    duplicates = df_values.duplicated(keep=False) # marks duplicates, with False option to mark all of them
     
-    dup_data = df_values[duplicates]
-    
-    
-    # print(dup_data)
+    dup_data = df_values[duplicates] # df with only all duplicated data 
     
     duplicates_grouped = dup_data.groupby(list(dup_data.columns)).apply(lambda x: x.index.tolist())
     
     wrong_labels = 0
     counter = 0
-
-    # print(df[duplicates])
     
     print("=======================================")
+    
+    # Working on removing duplicated data
     
     to_be_removed = []
     
@@ -76,16 +76,15 @@ def main():
         counter += 1
         print("Duplicated rows: {}".format(group))
         for i,j in product(group, group):
-            if i <= j:
+            if i <= j: # in order to avoid double counting
                 continue
-            # print('Row {0} and row {1}'.format(i, j))
-            if df.iloc[i].equals(df.iloc[j]):
+            if df.iloc[i].equals(df.iloc[j]): # True when also label is the same => remove only one of the two
                 print('The two observations are equal with the same label')
                 print('Label {0} = {1}'.format(i, df.at[i, 'classification']))
                 to_be_removed.append(j)
                 print('Removing observation {}'.format(j))
                 print("--------------------------------------")
-            else:
+            else: # label is different => remove both
                 print('The two observations are equal BUT with different label')
                 wrong_labels += 1
                 print('Label {0} : {1}, Label {2} : {3}'.format(i, df.at[i,'classification'], j, df.at[j, 'classification']))
@@ -97,15 +96,18 @@ def main():
     
     print("=======================================")
     
-    df.drop(to_be_removed, inplace=True)
-    # print(df.shape)
+    df.drop(to_be_removed, inplace=True) # removes the duplicated data
     
     print('Number of duplicates : {}'.format(counter))
     print('Number of wrong labels in duplicates : {}'.format(wrong_labels))
     
+    # Removing missing values
+    
     missing_values = df[df['classification'].isna()].index.tolist()
     print(missing_values)
-    df_no_missing = df.drop(missing_values)
+    df_no_missing = df.drop(missing_values) 
+    
+    # Now doing KNN
     
     print("=======================================")
     print("Starting KNN")
@@ -114,13 +116,11 @@ def main():
     x = df_no_missing.drop('classification', axis=1) 
     target = df_no_missing['classification']
     
-    x = pd.get_dummies(x)
+    x = pd.get_dummies(x) # one-hot encoding for categorical values
+        
+    x_train, x_test, y_train, y_test = train_test_split(x, target, test_size=0.2, random_state=my_seed) # splitting df in train and test
     
-    # print(x)
-    
-    x_train, x_test, y_train, y_test = train_test_split(x, target, test_size=0.2, random_state=4999)
-    
-    scaler = StandardScaler()
+    scaler = StandardScaler() # rescaling data
     
     x_train = scaler.fit_transform(x_train)
     x_test = scaler.transform(x_test)
@@ -130,7 +130,7 @@ def main():
     
     y_pred = KNN.predict(x_train)
     
-    conf_matrix = confusion_matrix(y_train, y_pred, normalize='all')
+    conf_matrix = confusion_matrix(y_train, y_pred, normalize='all') # confusion matrix
     
     plt.figure(figsize=(15,10))
     plt.title('Confusion matrix')
@@ -139,6 +139,8 @@ def main():
     print("=======================================")
     print('Saving plot at plots/Section_A_2/confusionMatrix.pdf')
     
+    # Evaluating performance of the KNN
+    
     score = KNN.score(x_test, y_test)
     
     print('Score : {}'.format(score))
@@ -146,19 +148,20 @@ def main():
     print(conf_matrix)
     print(classification_report(y_train, y_pred))
     
-    df_missing = df[df.index.isin(missing_values)]
-    # print(df_missing)
+    df_missing = df[df.index.isin(missing_values)] # selects only missing data
+    
+    # applying classifier to predict missing labels
     
     x_missing = df_missing.drop('classification', axis=1)
-    scaler = StandardScaler()
+    scaler = StandardScaler() # re-scale the df
     x_missing = scaler.fit_transform(x_missing)
     y_missing = KNN.predict(x_missing)
     
     df_out = df_missing.drop('classification', axis=1)
     
-    # print(df_out)
+    df_out['classification'] = y_missing # adding predicted values to the df
     
-    df_out['classification'] = y_missing
+    # Now applying classifier to re-predict all labels, both the true ones and the missing ones
     
     final_x = df.drop('classification', axis=1)
     scaler = StandardScaler()
@@ -168,6 +171,8 @@ def main():
     final_df = df.drop('classification', axis=1)
     
     final_df['classification'] = final_y
+    
+    # Now counting events in each class
     
     final_class_counter = final_df['classification'].value_counts().values
     

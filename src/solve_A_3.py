@@ -37,8 +37,8 @@ def main():
     df_vals_scaled = scaler.fit_transform(df_vals)
     df_a = pd.DataFrame(df_vals_scaled, columns=df_vals.columns)
     
-    plt.figure(figsize=(18,11)) 
-    plt.title('Density for first 20 features : overlaid')
+    # plt.figure(figsize=(18,11)) 
+    # plt.title('Density for first 20 features : overlaid')
     df_a.plot(kind = "density", figsize=(18,11))
     plt.savefig('plots/Section_A_3/density_overlaid.pdf')
     print("=======================================")

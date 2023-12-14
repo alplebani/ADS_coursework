@@ -122,7 +122,8 @@ def main():
     gmm.fit(scaled_data)
     
     outliers = gmm.predict(scaled_data) == 1 # outliers are the ones with prediction equal to 1
-    df_no_outliers = df[~outliers] # remove outliers
+    df_no_outliers = df_vals.copy()
+    df_no_outliers[outliers] = df_no_outliers.mean()
     
     # Compare plotting the pairwise distance
     
